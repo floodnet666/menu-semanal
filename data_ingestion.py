@@ -40,7 +40,7 @@ class PromoScraper:
         try:
             # Gemini 2.5 Pro ou Flash. Usando pro para melhor capacidade de pesquisa.
             response = self.client.models.generate_content(
-                model='gemini-2.0-flash',
+                model='gemini-1.5-flash',
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     tools=[{"google_search": {}}],
