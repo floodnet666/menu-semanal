@@ -17,6 +17,7 @@ class GoogleSync:
         if not os.path.exists(credentials_path):
             raise FileNotFoundError(f"Arquivo de credenciais não encontrado em {credentials_path}")
             
+        from google.oauth2.service_account import Credentials
         credentials = Credentials.from_service_account_file(credentials_path, scopes=scopes)
         self.client = gspread.authorize(credentials)
         self.sheet = self.client.open_by_key(self.spreadsheet_id)
