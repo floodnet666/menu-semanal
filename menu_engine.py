@@ -72,7 +72,7 @@ class MenuEngine:
         # Vamos usar o gemini-2.5-flash pela velocidade e competência estrutural.
         
         response = self.client.models.generate_content(
-            model='gemini-2.5-pro',
+            model='gemini-2.0-flash',
             contents=prompt_usuario,
             config=types.GenerateContentConfig(
                 system_instruction=prompt_sistema,
