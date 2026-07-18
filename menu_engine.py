@@ -68,23 +68,54 @@ class MenuEngine:
         Gere as 14 refeições e a lista de compras agregada.
         """
 
-        # O modelo padrão para raciocínio complexo estruturado (Gemini 2.5 Pro ou Flash)
-        # Vamos usar o gemini-2.5-flash pela velocidade e competência estrutural.
+        try:
+            response = self.client.models.generate_content(
+                model='gemini-2.0-flash',
+                contents=prompt_usuario,
+                config=types.GenerateContentConfig(
+                    system_instruction=prompt_sistema,
+                    response_mime_type="application/json",
+                    response_schema=MenuSemanal,
+                    temperature=0.2,
+                ),
+            )
+            return MenuSemanal.model_validate_json(response.text)
+        except Exception as e:
+            print(f"[Aviso] Falha de cota/API no LLM ({e}). Acionando gerador estático de fallback.")
+            return self._generate_fallback_menu(promos)
+
+    def _generate_fallback_menu(self, promos: List[dict]) -> MenuSemanal:
+        """Gera um menu de fallback usando lógica puramente determinística para garantir entrega contínua."""
+        refeicoes = []
+        dias = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+        for dia in dias:
+            for tipo in ["Almoço", "Jantar"]:
+                refeicoes.append(
+                    Refeicao(
+                        dia=dia,
+                        tipo=tipo,
+                        prato=Prato(
+                            nome="Frango Grelhado Rápido",
+                            proteina="Petto di Pollo",
+                            carboidrato="Riso Arborio",
+                            vegetal_isolado="Broccoli a vapor",
+                            tempo_preparo_minutos=25,
+                            ingredientes=[
+                                Ingrediente(nome="Petto di Pollo", quantidade="300g", supermercado="MD (Fallback)"),
+                                Ingrediente(nome="Riso Arborio", quantidade="200g", supermercado="Conad (Fallback)"),
+                                Ingrediente(nome="Broccoli", quantidade="1 unidade", supermercado="Qualquer")
+                            ]
+                        )
+                    )
+                )
         
-        response = self.client.models.generate_content(
-            model='gemini-1.5-flash',
-            contents=prompt_usuario,
-            config=types.GenerateContentConfig(
-                system_instruction=prompt_sistema,
-                response_mime_type="application/json",
-                response_schema=MenuSemanal,
-                temperature=0.2, # Baixa entropia
-            ),
-        )
+        lista_compras = [
+            ItemCompra(item="Petto di Pollo", quantidade="2kg", supermercado="MD (Fallback)"),
+            ItemCompra(item="Riso Arborio", quantidade="1kg", supermercado="Conad (Fallback)"),
+            ItemCompra(item="Broccoli", quantidade="4 unidades", supermercado="Qualquer")
+        ]
         
-        # Pydantic cuidará da validação do JSON retornado pelo modelo.
-        # No SDK do google-genai, o response.text contém o JSON serializado garantido pelo modelo.
-        return MenuSemanal.model_validate_json(response.text)
+        return MenuSemanal(refeicoes=refeicoes, lista_compras=lista_compras)
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
