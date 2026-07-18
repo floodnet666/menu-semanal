@@ -18,6 +18,11 @@ class Prato(BaseModel):
     tempo_preparo_minutos: int
     ingredientes: List[Ingrediente]
 
+class ItemCompra(BaseModel):
+    item: str
+    quantidade: str
+    supermercado: str = Field(description="Supermercado com a melhor oferta para este item, ou 'Qualquer' se não houver oferta.")
+
 class Refeicao(BaseModel):
     dia: str = Field(description="Dia da semana (ex: Segunda-feira)")
     tipo: str = Field(description="Almoço ou Jantar")
@@ -25,6 +30,7 @@ class Refeicao(BaseModel):
 
 class MenuSemanal(BaseModel):
     refeicoes: List[Refeicao]
+    lista_compras: List[ItemCompra]
 
 class MenuEngine:
     def __init__(self):
@@ -37,26 +43,29 @@ class MenuEngine:
         """
         prompt_sistema = """
         Você é um arquiteto nutricional de precisão. 
-        Sua tarefa é gerar um menu para 7 dias (Almoço e Jantar) para 2 adultos e 1 criança de 3 anos.
+        Sua tarefa é gerar um menu para 7 dias (Almoço e Jantar) para 2 adultos e 1 criança de 3 anos, além da LISTA DE COMPRAS completa.
         
         RESTRIÇÕES IMUTÁVEIS:
         1. Toda refeição DEVE conter: 1 Proteína, 1 Carboidrato, 1 Vegetal.
         2. RESTRIÇÃO VEGETAL: Um dos adultos possui restrição com vegetais misturados. 
-           Portanto, o componente vegetal DEVE SER COMPLETAMENTE ISOLADO (ex: servido cru, a vapor em recipiente separado). 
+           O componente vegetal DEVE SER COMPLETAMENTE ISOLADO (ex: servido cru, a vapor em recipiente separado). 
            NUNCA sugira pratos onde o vegetal é inerente ao cozimento do prato principal (ex: Torta de espinafre, Risoto de abobrinha). 
-           Arroz branco + Frango grelhado + Brócolis a vapor (separado) é o formato correto.
+           Exemplo correto: Arroz branco + Frango grelhado + Brócolis a vapor (separado).
         3. Fator Criança: Os pratos principais devem ter baixa complexidade palatável (kid-friendly).
         4. O tempo de preparo de cada prato não pode exceder 30 minutos.
-        5. Utilize preferencialmente os ingredientes da lista de promoções enviada. Complete com ingredientes básicos de despensa.
+        5. Utilize as ofertas enviadas para basear as refeições. Complete com itens de despensa básicos.
+        6. Após gerar as refeições, agregue TODOS os ingredientes na 'lista_compras'. 
+           Para cada item na lista de compras, indique o supermercado que possui a melhor oferta (baseado nos dados fornecidos), 
+           ou 'Qualquer' se não houver oferta específica.
         
-        Você retornará ESTRITAMENTE o JSON compatível com o schema solicitado, sem marcações ou alucinações verbais.
+        Retorne ESTRITAMENTE o JSON.
         """
 
         prompt_usuario = f"""
-        Lista de promoções ativas em Pozzuoli nesta semana:
+        Lista de ofertas reais ativas nesta semana em Pozzuoli:
         {json.dumps(promos, indent=2)}
         
-        Gere as 14 refeições.
+        Gere as 14 refeições e a lista de compras agregada.
         """
 
         # O modelo padrão para raciocínio complexo estruturado (Gemini 2.5 Pro ou Flash)

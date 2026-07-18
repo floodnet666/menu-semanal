@@ -57,32 +57,16 @@ class GoogleSync:
         ws = self._get_or_create_worksheet("Lista de Compras")
         ws.clear()
         
-        # Agregação de itens por supermercado
-        # O algoritmo extrai todos os ingredientes de todas as refeições
-        compras_por_mercado = {}
-        for ref in menu.refeicoes:
-            for ing in ref.prato.ingredientes:
-                mercado = ing.supermercado if ing.supermercado else "Qualquer"
-                if mercado not in compras_por_mercado:
-                    compras_por_mercado[mercado] = []
-                # Estrutura simples: só o nome e quantidade para a lista.
-                item_str = f"{ing.nome} ({ing.quantidade})"
-                if item_str not in compras_por_mercado[mercado]:
-                    compras_por_mercado[mercado].append(item_str)
+        linhas = [["Comprado", "Supermercado", "Quantidade", "Item"]]
         
-        linhas = []
-        # Cabeçalhos da lista de compras
-        linhas.append(["Comprado", "Supermercado", "Item"])
-        
-        for mercado, itens in compras_por_mercado.items():
-            for item in itens:
-                linhas.append(["FALSE", mercado, item])
+        for compra in menu.lista_compras:
+            linhas.append(["FALSE", compra.supermercado, compra.quantidade, compra.item])
                 
         # Atualizando os dados
-        ws.update(f'A1:C{len(linhas)}', linhas)
+        ws.update(f'A1:D{len(linhas)}', linhas)
         
         # Formatando Header
-        ws.format('A1:C1', {'textFormat': {'bold': True}, 'backgroundColor': {'red': 0.8, 'green': 0.8, 'blue': 0.8}})
+        ws.format('A1:D1', {'textFormat': {'bold': True}, 'backgroundColor': {'red': 0.8, 'green': 0.8, 'blue': 0.8}})
         
         # Inserindo checkboxes (Validação de dados nativa do Google Sheets) na coluna A (de A2 em diante)
         # Requer um request de batch update via a API
