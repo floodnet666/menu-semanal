@@ -1,6 +1,9 @@
 name: Weekly Menu Generator
 
 on:
+  push:
+    branches:
+      - master
   schedule:
     # Corre todo domingo às 08:00 UTC (10:00 IT)
     - cron: '0 8 * * 0'
